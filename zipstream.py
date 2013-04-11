@@ -221,7 +221,7 @@ class ZipStream:
         .
         .
         .
-        
+
 
         path -- path to file or directory
         archive_dir_name -- name of containing directory in archive
@@ -313,11 +313,11 @@ class ZipStream:
         """Returns data to finish off an archive based on the files already
         added via zip_file(...).  The data returned corresponds to the fields:
 
-        [archive decryption header] 
-        [archive extra data record] 
+        [archive decryption header]
+        [archive extra data record]
         [central directory]
         [zip64 end of central directory record]
-        [zip64 end of central directory locator] 
+        [zip64 end of central directory locator]
         [end of central directory record]
 
         as described in section V. of the PKZIP Application Note:
@@ -365,7 +365,7 @@ class ZipStream:
                                   len(zinfo.filename), len(extra_data), len(zinfo.comment),
                                   0, zinfo.internal_attr, zinfo.external_attr,
                                   header_offset)
-            
+
             data.append( self.update_data_ptr(centdir))
             data.append( self.update_data_ptr(zinfo.filename))
             data.append( self.update_data_ptr(extra_data))
