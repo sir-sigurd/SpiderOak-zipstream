@@ -174,11 +174,11 @@ class ZipInfo (object):
 
 
 
-class ZipStream:
+class ZipStreamPaths(object):
     """
     """
 
-    def __init__(self, path, arc_path='', compression=ZIP_DEFLATED):
+    def __init__(self, paths, compression=ZIP_DEFLATED):
         if compression == ZIP_STORED:
             pass
         elif compression == ZIP_DEFLATED:
@@ -190,13 +190,13 @@ class ZipStream:
 
         self.filelist = []              # List of ZipInfo instances for archive
         self.compression = compression  # Method of compression
-        self.path = path                # source path
-        self.arc_path = arc_path        # top level path in archive
+        self.paths = paths
         self.data_ptr = 0               # Keep track of location inside archive
 
     def __iter__(self):
-        for data in self.zip_path(self.path, self.arc_path):
-            yield data
+        for path, archive_path in self.paths:
+            for data in self.zip_file(path, archive_path):
+                yield data
 
         yield self.archive_footer()
 
@@ -395,6 +395,25 @@ class ZipStream:
             data.append( self.update_data_ptr(endrec))
 
         return ''.join(data)
+
+
+class ZipStream(ZipStreamPaths):
+    @classmethod
+    def zip_path(cls, path, archive_dir_name):
+        if os.path.isdir(path):
+            dir_name = os.path.basename(path)
+            for name in os.listdir(path):
+                r_path = os.path.join(path, name)
+                r_archive_dir_name = os.path.join(archive_dir_name, dir_name)
+                for data in cls.zip_path(r_path, r_archive_dir_name):
+                    yield data
+        else:
+            archive_path = os.path.join(archive_dir_name, os.path.basename(path))
+            yield path, archive_path
+
+    def __init__(self, path, arc_name='', compression=ZIP_DEFLATED):
+        paths = self.zip_path(path, arc_name)
+        super(ZipStream, self).__init__(paths, compression=compression)
 
 
 if __name__ == "__main__":
